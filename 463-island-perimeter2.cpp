@@ -14,19 +14,25 @@ public:
     int islandPerimeter(vector<vector<int>>& grid) {
         int n = grid.size();
         int m = grid[0].size();
-        for (int i = 0; i < n; i++) {
-            grid[i].insert(grid[i].begin(), 0);
-            grid[i].push_back(0);
-        }
-        grid.insert(grid.begin(), vector<int> (m + 2, 0));
-        grid.emplace_back(m + 2, 0);
-        n = n + 2;
-        m = m + 2;
         int ans = 0;
-        for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < m; j++) {
+            ans += grid[0][j] ^ 0;       //first row with top
+            ans += grid[n - 1][j] ^ 0;   //last row with bottom
+        }
+        for (int i = 0; i < n; i++) {
+            ans += grid[i][0] ^ 0;       //first col with left
+            ans += grid[i][m - 1] ^ 0;   //last col with right
+        }
+        for (int i = 0; i < n - 1; i++) {//grid
             for (int j = 0 ; j < m - 1; j++) {
-                ans = ans + (grid[i][j] ^ grid[i][j + 1]) + (grid[i][j] ^ grid[i + 1][j]);
+                ans += (grid[i][j] ^ grid[i][j + 1]) + (grid[i][j] ^ grid[i + 1][j]);
             }
+        }
+        for (int j = 0; j < m - 1; j++) {//last row
+            ans += grid[n - 1][j] ^ grid[n - 1][j + 1];
+        }
+        for (int i = 0; i < n - 1; i++) {//last col
+            ans += grid[i][m - 1] ^ grid[i + 1][m - 1];
         }
         return ans;
     }
@@ -34,9 +40,9 @@ public:
 
 int main() {
     Solution solution;
-    //vector<vector<int>> grid = {{0,1,0,0},{1,1,1,0},{0,1,0,0},{1,1,0,0}};
+    vector<vector<int>> grid = {{0,1,0,0},{1,1,1,0},{0,1,0,0},{1,1,0,0}};
     //vector<vector<int>> grid = {{1}};
-    vector<vector<int>> grid = {{1,0,0}};
+    //vector<vector<int>> grid = {{1,0}};
     cout << solution.islandPerimeter(grid);
 }
 
