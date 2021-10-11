@@ -42,58 +42,44 @@ public:
     }
 
     void insert(string word) {
-        Trie* pTrie = this;
-        word += '.';
-        for (int i = 0; i < word.size(); i++) {
-            auto it = pTrie->letters.find(word[i]);
-            if (it == pTrie->letters.end()) {
-                if (i == word.size() - 1) {
-                    pTrie->letters[word[i]] = nullptr;
-                } else {
-                    Trie* tmp = new Trie();
-                    pTrie->letters[word[i]] = tmp;
-                    pTrie = tmp;
-                }
-            } else {
-                if (it->second == nullptr) {
-                    if (i < word.size() - 1) {
-                        it->second = new Trie();
-                        pTrie = it->second;
-                    }
-                } else {
-                    pTrie = it->second;
-                }
+        Trie* node = this;
+        for (auto now : word) {
+            if (node->letters.find(now) == node->letters.end()) {
+                node->letters[now] = new Trie();
             }
+            node = node->letters[now];
         }
+        node->isEnd = true;
     }
 
     bool search(string word) {
-        Trie* pTrie = this;
+        Trie* node = this;
         for (auto now : word) {
-            auto it = pTrie->letters.find(now);
-            if (it == pTrie->letters.end()) {
+            auto it = node->letters.find(now);
+            if (it == node->letters.end()) {
                 return false;
             } else {
-                pTrie = it->second;
+                node = it->second;
             }
         }
-        return (pTrie->letters.find('.') != pTrie->letters.end());
+        return node->isEnd;
     }
 
     bool startsWith(string prefix) {
-        Trie* pTrie = this;
+        Trie* node = this;
         for (auto now : prefix) {
-            auto it = pTrie->letters.find(now);
-            if (it == pTrie->letters.end()) {
+            auto it = node->letters.find(now);
+            if (it == node->letters.end()) {
                 return false;
             } else {
-                pTrie = it->second;
+                node = it->second;
             }
         }
         return true;
     }
 private:
-    unordered_map <char,Trie*> letters;
+    unordered_map <char,Trie*> letters = {};
+    bool isEnd = false;
 };
 
 int main() {
