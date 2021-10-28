@@ -28,35 +28,34 @@ from typing import List
 class Solution:
     def threeSum(self, nums: List[int]) -> List[List[int]]:
         ans = []
-        pairs = dict()
-        singles = dict()
+        doubles = set()
+        singles = set()
+        zero_count = 0
         for num in nums:
-            if num not in pairs:
-                if num not in singles:
-                    singles[num] = 1
-                else:
-                    pairs[num] = 1
-                    del singles[num]
-        if pairs.get(0, 0) == 1 and not singles and len(nums) > 2:
+            if num not in singles:
+                singles.add(num)
+            else:
+                doubles.add(num)
+            zero_count += 1 if num == 0 else 0
+        if zero_count > 2:
             ans.append([0, 0, 0])
-        for pair in pairs:
-            if -(pair + pair) in singles:
-                ans.append([pair, pair, -(pair + pair)])
-        for k in pairs:
-            singles[k] = 1
-        l = sorted(list(singles))
+        for num in doubles:
+            if -(num + num) in singles and num != 0:
+                ans.append([num, num, -(num + num)])
+        l = list(singles)
         for i in range(len(l)):
+            hiden = set()
             for j in range(i + 1, len(l)):
-                if -(l[i] + l[j]) in singles or -(l[i] + l[j]) in pairs:
-                    if -(l[i] + l[j]) > l[j]:
+                if -(l[i] + l[j]) in singles:
+                    if -(l[i] + l[j]) != l[i] and -(l[i] + l[j]) != l[j]:
                         ans.append([l[i], l[j], -(l[i] + l[j])])
+                        hiden.add(l[j])
+                        singles.remove(l[j])
+            singles |= hiden
+            singles.remove(l[i])
         return ans
+
 
 nums = [0, 0, 0]
 solution = Solution()
 print(solution.threeSum(nums))
-'''
-        triples = {tuple(sorted([nums[i], nums[j], nums[k]])) for k in range(n) for j in range(n) for i in range(n)
-        if i != j and i != k and j != k and nums[i] + nums[j] + nums[k] == 0}
-            ans = [list(triple) for triple in triples]
-'''
