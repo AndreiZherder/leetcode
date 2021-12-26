@@ -26,60 +26,40 @@ Constraints:
 -10^4 < xi, yi < 10^4
 """
 import random
-from functools import total_ordering
 from typing import List
 
 
-@total_ordering
-class Point:
-    def __init__(self, x: int, y: int):
-        self.x = x
-        self.y = y
-
-    def __lt__(self, other):
-        return self.x ** 2 + self.y ** 2 < other.x ** 2 + other.y ** 2
-
-    def __eq__(self, other):
-        return self.x ** 2 + self.y ** 2 == other.x ** 2 + other.y ** 2
-
-
-def partition(a: List[Point], l: int, r: int):
+def partition(a: List[List[int]], l: int, r: int):
     rand = random.randrange(l, r + 1)
     a[l], a[rand] = a[rand], a[l]
     x = a[l]
-    j1 = l
-    j2 = l
+    j = l
     for i in range(l + 1, r + 1):
-        if a[i] <= x:
-            j2 += 1
-            a[i], a[j2] = a[j2], a[i]
-    for i in range(l + 1, j2 + 1):
-        if a[i] < x:
-            j1 += 1
-            a[i], a[j1] = a[j1], a[i]
-    a[l], a[j1] = a[j1], a[l]
-    a[j1], a[j2] = a[j2], a[j1]
-    return j1, j2
+        if a[i][0] ** 2 + a[i][1] ** 2 <= x[0] ** 2 + x[1] ** 2:
+            j += 1
+            a[i], a[j] = a[j], a[i]
+    a[l], a[j] = a[j], a[l]
+    return j
 
 
-def random_select(points: List[Point], l: int, r: int, k) -> List[Point]:
+def random_select(points: List[List[int]], l: int, r: int, k):
     if l >= r:
-        return [points[l]]
-    m1, m2 = partition(points, l, r)
-    if l <= k < m1:
-        return random_select(points, l, m1 - 1, k)
-    elif m1 <= k <= m2:
-        return points[l:k + 1]
+        return
+    m = partition(points, l, r)
+    if k < m:
+        random_select(points, l, m - 1, k)
+    elif m == k:
+        return
     else:
-        return points[l:m2 + 1] + random_select(points, m2 + 1, r, k)
+        random_select(points, m + 1, r, k)
 
 
 class Solution:
     def kClosest(self, points: List[List[int]], k: int) -> List[List[int]]:
         l = 0
         r = len(points) - 1
-        kpoints = random_select([Point(point[0], point[1]) for point in points], l, r, k - 1)
-        return [[point.x, point.y] for point in kpoints]
+        random_select(points, l, r, k - 1)
+        return points[:k]
 
 
 def main():
