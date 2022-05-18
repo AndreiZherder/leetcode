@@ -64,22 +64,22 @@ instructions[i] is 'G', 'L' or, 'R'.
 
 class Solution:
     def isRobotBounded(self, instructions: str) -> bool:
-        directions = [0, 1, 2, 3]
+        directions = (0, 1, 2, 3)
         direction = 0
-        moves = {0: [0, 1],
-                 1: [1, 0],
-                 2: [0, -1],
-                 3: [-1, 0]}
-        position = [0, 0]
+        moves = ((0, 1),
+                 (1, 0),
+                 (0, -1),
+                 (-1, 0))
+        x, y = 0, 0
         for instruction in instructions:
             if instruction == 'R':
                 direction = directions[(direction + 1) % 4]
             elif instruction == 'L':
                 direction = directions[(direction - 1) % 4]
-            elif instruction == 'G':
-                position[0] += moves[direction][0]
-                position[1] += moves[direction][1]
-        return direction != 0 or position == [0, 0]
+            else:
+                x += moves[direction][0]
+                y += moves[direction][1]
+        return direction != 0 or (x, y) == (0, 0)
 
 
 def main():
