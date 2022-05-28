@@ -28,7 +28,7 @@ n == nums.length
 1 <= n <= 300
 0 <= nums[i] <= 100
 """
-import copy
+from copy import deepcopy
 from itertools import permutations
 from typing import List
 
@@ -47,9 +47,22 @@ class Solution:
                 [Node(1, len(nums), len(nums) + 2)]
         ans = []
         for seq in permutations(range(1, len(nums) + 1), len(nums)):
-            ans.append([self.coins(copy.deepcopy(nodes), seq), seq])
+            ans.append([self.coins(deepcopy(nodes), seq), seq])
         coins, seq = max(ans, key=lambda x: x[0])
         print(coins, seq, [nodes[i].val for i in seq])
+        for i in seq:
+            j = nodes[0].next
+            while j != len(seq) + 1:
+                print(nodes[j].val, end=' ')
+                j = nodes[j].next
+            print()
+            j = nodes[0].next
+            while j != len(seq) + 1:
+                print(nodes[nodes[j].prev].val * nodes[j].val * nodes[nodes[j].next].val, end=' ')
+                j = nodes[j].next
+            print()
+            nodes[nodes[i].prev].next = nodes[i].next
+            nodes[nodes[i].next].prev = nodes[i].prev
         return 0
 
     def coins(self, nodes: List['Node'], seq: List[int]) -> int:
@@ -62,11 +75,8 @@ class Solution:
 
 
 def main():
-    numss = [[2, 3, 4, 5, 6],
-             [6, 5, 4, 3, 2],
-             [2, 3, 4, 5, 4],
-             [5, 4, 1, 2, 3],
-             [2, 3, 10, 8, 7, 2, 5]
+    numss = [[7, 3, 5, 9, 3, 2, 12],
+             [7, 3, 5, 9, 3, 2, 25],
              ]
     solution = Solution()
     for nums in numss:
