@@ -29,6 +29,7 @@ n == nums.length
 0 <= nums[i] <= 100
 """
 from copy import deepcopy
+from heapq import heappush, heappop
 from itertools import permutations
 from typing import List
 
@@ -41,7 +42,73 @@ class Node:
 
 
 class Solution:
+    def maxCoins_first_version(self, nums: List[int]) -> int:
+        ans = 0
+        nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
+                [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
+                [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
+        n = len(nums)
+        while n > 0:
+            i = nodes[1].next
+            maximum_i = i
+            maximum = -float('Inf')
+            while i != len(nums) + 2:
+                tmp = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
+                      (nodes[i].val +
+                       nodes[nodes[nodes[i].prev].prev].val +
+                       nodes[nodes[nodes[i].next].next].val)
+                if tmp > maximum:
+                    maximum = tmp
+                    maximum_i = i
+                i = nodes[i].next
+            ans += nodes[nodes[maximum_i].prev].val * nodes[maximum_i].val * nodes[nodes[maximum_i].next].val
+            nodes[nodes[maximum_i].prev].next = nodes[maximum_i].next
+            nodes[nodes[maximum_i].next].prev = nodes[maximum_i].prev
+            n -= 1
+        return ans
+
     def maxCoins(self, nums: List[int]) -> int:
+        ans = 0
+        nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
+                [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
+                [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
+        n = len(nums)
+        queue = []
+        i = nodes[1].next
+        while i != len(nums) + 2:
+            cost = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
+                   (nodes[i].val +
+                    nodes[nodes[nodes[i].prev].prev].val +
+                    nodes[nodes[nodes[i].next].next].val)
+            heappush(queue, (cost, i))
+            i = nodes[i].next
+
+        while n > 0:
+            cost, i = heappop(queue)
+            ans += nodes[nodes[i].prev].val * nodes[i].val * nodes[nodes[i].next].val
+
+            i = nodes[i].prev
+            cost = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
+                   (nodes[i].val +
+                    nodes[nodes[nodes[i].prev].prev].val +
+                    nodes[nodes[nodes[i].next].next].val)
+            heappush(queue, (cost, i))
+
+            i = nodes[i].next
+            i = nodes[i].next
+            cost = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
+                   (nodes[i].val +
+                    nodes[nodes[nodes[i].prev].prev].val +
+                    nodes[nodes[nodes[i].next].next].val)
+            heappush(queue, (cost, i))
+
+            i = nodes[i].prev
+            nodes[nodes[i].prev].next = nodes[i].next
+            nodes[nodes[i].next].prev = nodes[i].prev
+            n -= 1
+        return ans
+
+    def prepare(self, nums: List[int]) -> int:
         nodes = [Node(1, -1, 1)] + \
                 [Node(num, i, i + 2) for i, num in enumerate(nums)] + \
                 [Node(1, len(nums), len(nums) + 2)]
@@ -77,11 +144,13 @@ class Solution:
 def main():
     numss = [[7, 3, 5, 9, 3, 2, 12],
              [7, 3, 5, 9, 3, 2, 25],
+             [3, 1, 5, 8]
              ]
     solution = Solution()
     for nums in numss:
-        solution.maxCoins(nums)
-    # print(Solution().maxCoins(nums))
+        solution.prepare(nums)
+    for nums in numss:
+        print(solution.maxCoins(nums))
 
 
 if __name__ == '__main__':
