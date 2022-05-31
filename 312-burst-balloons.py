@@ -42,90 +42,24 @@ class Node:
 
 
 class Solution:
-    def maxCoins_first_version(self, nums: List[int]) -> int:
-        ans = 0
+    def bruteforce(self, nums: List[int]) -> int:
         nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
                 [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
                 [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
-        n = len(nums)
-        while n > 0:
-            i = nodes[1].next
-            maximum_i = i
-            maximum = -float('Inf')
-            while i != len(nums) + 2:
-                tmp = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
-                      (nodes[i].val +
-                       nodes[nodes[nodes[i].prev].prev].val +
-                       nodes[nodes[nodes[i].next].next].val)
-                if tmp > maximum:
-                    maximum = tmp
-                    maximum_i = i
-                i = nodes[i].next
-            ans += nodes[nodes[maximum_i].prev].val * nodes[maximum_i].val * nodes[nodes[maximum_i].next].val
-            nodes[nodes[maximum_i].prev].next = nodes[maximum_i].next
-            nodes[nodes[maximum_i].next].prev = nodes[maximum_i].prev
-            n -= 1
-        return ans
-
-    def maxCoins(self, nums: List[int]) -> int:
-        ans = 0
-        nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
-                [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
-                [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
-        n = len(nums)
-        queue = []
-        i = nodes[1].next
-        while i != len(nums) + 2:
-            cost = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
-                   (nodes[i].val +
-                    nodes[nodes[nodes[i].prev].prev].val +
-                    nodes[nodes[nodes[i].next].next].val)
-            heappush(queue, (cost, i))
-            i = nodes[i].next
-
-        while n > 0:
-            cost, i = heappop(queue)
-            ans += nodes[nodes[i].prev].val * nodes[i].val * nodes[nodes[i].next].val
-
-            i = nodes[i].prev
-            cost = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
-                   (nodes[i].val +
-                    nodes[nodes[nodes[i].prev].prev].val +
-                    nodes[nodes[nodes[i].next].next].val)
-            heappush(queue, (cost, i))
-
-            i = nodes[i].next
-            i = nodes[i].next
-            cost = nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
-                   (nodes[i].val +
-                    nodes[nodes[nodes[i].prev].prev].val +
-                    nodes[nodes[nodes[i].next].next].val)
-            heappush(queue, (cost, i))
-
-            i = nodes[i].prev
-            nodes[nodes[i].prev].next = nodes[i].next
-            nodes[nodes[i].next].prev = nodes[i].prev
-            n -= 1
-        return ans
-
-    def prepare(self, nums: List[int]) -> int:
-        nodes = [Node(1, -1, 1)] + \
-                [Node(num, i, i + 2) for i, num in enumerate(nums)] + \
-                [Node(1, len(nums), len(nums) + 2)]
         ans = []
-        for seq in permutations(range(1, len(nums) + 1), len(nums)):
+        for seq in permutations(range(2, len(nums) + 2), len(nums)):
             ans.append([self.coins(deepcopy(nodes), seq), seq])
         coins, seq = max(ans, key=lambda x: x[0])
         print(coins, seq, [nodes[i].val for i in seq])
         for i in seq:
-            j = nodes[0].next
-            while j != len(seq) + 1:
+            j = nodes[1].next
+            while j != len(seq) + 2:
                 print(nodes[j].val, end=' ')
                 j = nodes[j].next
             print()
-            j = nodes[0].next
-            while j != len(seq) + 1:
-                print(nodes[nodes[j].prev].val * nodes[j].val * nodes[nodes[j].next].val, end=' ')
+            j = nodes[1].next
+            while j != len(seq) + 2:
+                print(self.get_cost(nodes, j), end=' ')
                 j = nodes[j].next
             print()
             nodes[nodes[i].prev].next = nodes[i].next
@@ -140,16 +74,103 @@ class Solution:
             nodes[nodes[i].next].prev = nodes[i].prev
         return ans
 
+    def maxCoins_first_version(self, nums: List[int]) -> int:
+        ans = 0
+        nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
+                [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
+                [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
+        n = len(nums)
+        while n > 0:
+            i = nodes[1].next
+            maximum_i = i
+            maximum = -float('Inf')
+            while i != len(nums) + 2:
+                tmp = self.get_cost(nodes, i)
+                if tmp > maximum:
+                    maximum = tmp
+                    maximum_i = i
+                i = nodes[i].next
+            ans += nodes[nodes[maximum_i].prev].val * nodes[maximum_i].val * nodes[nodes[maximum_i].next].val
+            nodes[nodes[maximum_i].prev].next = nodes[maximum_i].next
+            nodes[nodes[maximum_i].next].prev = nodes[maximum_i].prev
+            n -= 1
+        return ans
+
+    def get_cost(self, nodes: List['Node'], i: int) -> int:
+        return nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
+               (nodes[i].val +
+                nodes[nodes[nodes[i].prev].prev].val +
+                nodes[nodes[nodes[i].next].next].val)
+
+    def maxCoins(self, nums: List[int]) -> int:
+        ans = 0
+        nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
+                [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
+                [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
+        n = len(nums)
+        queue = []
+        node_ids = {}
+        cnt = 0
+        i = nodes[1].next
+        while i != len(nums) + 2:
+            cost = self.get_cost(nodes, i)
+            heappush(queue, (-cost, i, cnt))
+            node_ids[i] = cnt
+            cnt += 1
+            i = nodes[i].next
+
+        while n > 0:
+            cost, i, node_id = heappop(queue)
+            if node_id == node_ids[i]:
+                ans += nodes[nodes[i].prev].val * nodes[i].val * nodes[nodes[i].next].val
+
+                nodes[nodes[i].prev].next = nodes[i].next
+                nodes[nodes[i].next].prev = nodes[i].prev
+
+                i = nodes[i].prev
+                i = nodes[i].prev
+                if i > 1:
+                    cost = self.get_cost(nodes, i)
+                    heappush(queue, (-cost, i, cnt))
+                    node_ids[i] = cnt
+                    cnt += 1
+
+                i = nodes[i].next
+                if i > 1:
+                    cost = self.get_cost(nodes, i)
+                    heappush(queue, (-cost, i, cnt))
+                    node_ids[i] = cnt
+                    cnt += 1
+
+                i = nodes[i].next
+                if i < len(nums) + 2:
+                    cost = self.get_cost(nodes, i)
+                    heappush(queue, (-cost, i, cnt))
+                    node_ids[i] = cnt
+                    cnt += 1
+
+                i = nodes[i].next
+                if i < len(nums) + 2:
+                    cost = self.get_cost(nodes, i)
+                    heappush(queue, (-cost, i, cnt))
+                    node_ids[i] = cnt
+                    cnt += 1
+                n -= 1
+        return ans
+
 
 def main():
-    numss = [[7, 3, 5, 9, 3, 2, 12],
+    lists = [[7, 3, 5, 9, 3, 2, 12],
              [7, 3, 5, 9, 3, 2, 25],
-             [3, 1, 5, 8]
+             [3, 1, 5, 8],
+             [35, 16, 83, 87, 84, 59, 48, 41]
              ]
     solution = Solution()
-    for nums in numss:
-        solution.prepare(nums)
-    for nums in numss:
+    for nums in lists:
+        solution.bruteforce(nums)
+    for nums in lists:
+        print(solution.maxCoins_first_version(nums))
+    for nums in lists:
         print(solution.maxCoins(nums))
 
 
