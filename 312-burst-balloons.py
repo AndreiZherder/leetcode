@@ -29,7 +29,7 @@ n == nums.length
 0 <= nums[i] <= 100
 """
 from copy import deepcopy
-from heapq import heappush, heappop
+from functools import lru_cache
 from itertools import permutations
 from typing import List
 
@@ -74,102 +74,46 @@ class Solution:
             nodes[nodes[i].next].prev = nodes[i].prev
         return ans
 
-    def maxCoins_first_version(self, nums: List[int]) -> int:
-        ans = 0
-        nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
-                [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
-                [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
-        n = len(nums)
-        while n > 0:
-            i = nodes[1].next
-            maximum_i = i
-            maximum = -float('Inf')
-            while i != len(nums) + 2:
-                tmp = self.get_cost(nodes, i)
-                if tmp > maximum:
-                    maximum = tmp
-                    maximum_i = i
-                i = nodes[i].next
-            ans += nodes[nodes[maximum_i].prev].val * nodes[maximum_i].val * nodes[nodes[maximum_i].next].val
-            nodes[nodes[maximum_i].prev].next = nodes[maximum_i].next
-            nodes[nodes[maximum_i].next].prev = nodes[maximum_i].prev
-            n -= 1
-        return ans
-
     def get_cost(self, nodes: List['Node'], i: int) -> int:
         return nodes[nodes[i].prev].val * nodes[nodes[i].next].val * \
                (nodes[i].val +
                 nodes[nodes[nodes[i].prev].prev].val +
                 nodes[nodes[nodes[i].next].next].val)
 
+    def maxCoins_recursive(self, nums: List[int]) -> int:
+        @lru_cache
+        def helper(i: int, j: int) -> int:
+            ans = 0
+            if i <= j:
+                for k in range(i, j + 1):
+                    ans = max(ans, nums[i - 1] * nums[k] * nums[j + 1] + helper(i, k - 1) + helper(k + 1, j))
+            return ans
+
+        nums = [1] + nums + [1]
+        return helper(1, len(nums) - 2)
+
     def maxCoins(self, nums: List[int]) -> int:
-        ans = 0
-        nodes = [Node(1, -1, 1)] + [Node(1, 0, 2)] + \
-                [Node(num, i + 1, i + 3) for i, num in enumerate(nums)] + \
-                [Node(1, len(nums) + 1, len(nums) + 3)] + [Node(1, len(nums) + 2, len(nums) + 4)]
+        nums = [1] + nums + [1]
         n = len(nums)
-        queue = []
-        node_ids = {}
-        cnt = 0
-        i = nodes[1].next
-        while i != len(nums) + 2:
-            cost = self.get_cost(nodes, i)
-            heappush(queue, (-cost, i, cnt))
-            node_ids[i] = cnt
-            cnt += 1
-            i = nodes[i].next
-
-        while n > 0:
-            cost, i, node_id = heappop(queue)
-            if node_id == node_ids[i]:
-                ans += nodes[nodes[i].prev].val * nodes[i].val * nodes[nodes[i].next].val
-
-                nodes[nodes[i].prev].next = nodes[i].next
-                nodes[nodes[i].next].prev = nodes[i].prev
-
-                i = nodes[i].prev
-                i = nodes[i].prev
-                if i > 1:
-                    cost = self.get_cost(nodes, i)
-                    heappush(queue, (-cost, i, cnt))
-                    node_ids[i] = cnt
-                    cnt += 1
-
-                i = nodes[i].next
-                if i > 1:
-                    cost = self.get_cost(nodes, i)
-                    heappush(queue, (-cost, i, cnt))
-                    node_ids[i] = cnt
-                    cnt += 1
-
-                i = nodes[i].next
-                if i < len(nums) + 2:
-                    cost = self.get_cost(nodes, i)
-                    heappush(queue, (-cost, i, cnt))
-                    node_ids[i] = cnt
-                    cnt += 1
-
-                i = nodes[i].next
-                if i < len(nums) + 2:
-                    cost = self.get_cost(nodes, i)
-                    heappush(queue, (-cost, i, cnt))
-                    node_ids[i] = cnt
-                    cnt += 1
-                n -= 1
-        return ans
+        dp = [[0 for j in range(n)] for i in range(n)]
+        for i in range(1, n - 1):
+            for j in range(i, n - 1):
+                for k in range(i, j + 1):
+                    dp[i][j] = max(dp[i][j], nums[i - 1] * nums[k] * nums[j + 1] + dp[i][k - 1] + dp[k + 1][j])
+        return dp[1][n - 2]
 
 
 def main():
     lists = [[7, 3, 5, 9, 3, 2, 12],
              [7, 3, 5, 9, 3, 2, 25],
              [3, 1, 5, 8],
-             [35, 16, 83, 87, 84, 59, 48, 41]
+             [35, 16, 83, 87, 84, 59, 48, 41],
+             [4, 1, 4, 9, 4, 1, 8, 1, 8, 6, 9, 1, 2, 0, 9, 6, 4, 1, 7, 9, 5, 4, 4, 0]
              ]
     solution = Solution()
-    for nums in lists:
-        solution.bruteforce(nums)
-    for nums in lists:
-        print(solution.maxCoins_first_version(nums))
+    # for nums in lists:
+    #     solution.bruteforce(nums)
+    #     print()
     for nums in lists:
         print(solution.maxCoins(nums))
 
