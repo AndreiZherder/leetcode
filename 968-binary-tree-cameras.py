@@ -19,7 +19,8 @@ Constraints:
 The number of nodes in the tree is in the range [1, 1000].
 Node.val == 0
 """
-from typing import Optional, Tuple
+from collections import namedtuple
+from typing import Optional
 
 
 class TreeNode:
@@ -77,34 +78,65 @@ class TreeNode:
         lines = [first_line, second_line] + [a + u * ' ' + b for a, b in zipped_lines]
         return lines, n + m + u, max(p, q) + 2, n + u // 2
 
+Info = namedtuple('Info', 'camera, filmed, cnt')
 
 class Solution:
     def minCameraCover(self, root: Optional[TreeNode]) -> int:
-        def dfs(node: TreeNode) -> Tuple[int, int]:
+        def dfs(node: TreeNode) -> Info:
             if not node.left and not node.right:
-                return 0, 0
+                return 0, 0, 0
             elif node.left and node.right:
-                l, lc = dfs(node.left)
-                r, rc = dfs(node.right)
-                if l == 1 and r == 1:
-                    return 0, lc + rc
+                left_camera, left_filmed, left_cnt = dfs(node.left)
+                right_camera, right_filmed, right_cnt = dfs(node.right)
+                if left_filmed and right_filmed:
+                    if left_camera or right_camera:
+                        return 0, 1, left_cnt + right_cnt
+                    else:
+                        if node == root:
+                            return 1, 1, left_cnt + right_cnt + 1
+                        return 0, 0, left_cnt + right_cnt
                 else:
-                    return 1, lc + rc + 1
-            elif node.left:
-                l, lc = dfs(node.left)
-                return (0, lc) if l == 1 else (1, lc + 1)
+                    return 1, 1, left_cnt + right_cnt + 1
             else:
-                r, rc = dfs(node.right)
-                return (0, rc) if r == 1 else (1, rc + 1)
+                child = node.left if node.left else node.right
+                camera, filmed, cnt = dfs(child)
+                if filmed:
+                    if camera:
+                        return 0, 1, cnt
+                    else:
+                        if node == root:
+                            return 1, 1, cnt + 1
+                        return 0, 0, cnt
+                else:
+                    return 1, 1, cnt + 1
 
         if not root.left and not root.right:
             return 1
-        val, cnt = dfs(root)
+
+        camera, filmed, cnt = dfs(root)
         return cnt
 
 
 def main():
-    vals = [0,0,None,None,0,0,None,None,0,0]
+    # vals = [0,
+    #         0, None,
+    #         None, 0, None, None,
+    #         None, None, 0, None, None, None, None, None,
+    #         None, None, None, None, None, 0, None, None, None, None, None, None, None, None, None, None]
+    # vals = [0]
+    # vals = [0, 0, None, 0, 0, None, None]
+    # vals = [0, 0]
+    # vals = [0, 0, None, 0, None, None, None]
+    # vals = [0, 0, None, 0, None, None, None, 0, None, None, None, None, None, None, None]
+    # vals = [0, 0, None, 0, None, None, None,
+    #         0, None, None, None, None, None, None, None,
+    #         0, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
+    # vals = [0, 0, None, 0, None, None, None,
+    #         0, None, None, None, None, None, None, None,
+    #         0, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+    #         0, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
+    # vals = [0, 0, 0]
+    vals = [0, 0, 0, None, 0, 0, None]
     nodes = [TreeNode(val) if val is not None else None for val in vals]
     root = nodes[0] if nodes else None
     for i, node in enumerate(nodes):
