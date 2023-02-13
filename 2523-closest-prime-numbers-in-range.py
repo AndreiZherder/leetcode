@@ -54,8 +54,8 @@ class Solution:
         for num in primes:
             if num - prev < best:
                 ans = [prev, num]
-                prev = num
                 best = num - prev
+            prev = num
         return ans
 
 
