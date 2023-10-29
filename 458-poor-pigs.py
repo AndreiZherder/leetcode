@@ -42,8 +42,15 @@ import math
 
 class Solution:
     def poorPigs(self, buckets: int, minutesToDie: int, minutesToTest: int) -> int:
+        if buckets == 1:
+            return 0
         n = minutesToTest // minutesToDie + 1
-        return math.ceil(math.log(buckets, n))
+        pigs = 1
+        cur = n
+        while cur < buckets:
+            cur *= n
+            pigs += 1
+        return pigs
 
 
 def main():
