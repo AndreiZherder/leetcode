@@ -42,13 +42,10 @@ class Solution:
             total = 0
             for i in range(n):
                 total += nums[i]
-                if total <= goal:
-                    ans += i - j + 1
-                else:
-                    while total > goal:
-                        total -= nums[j]
-                        j += 1
-                    ans += i - j + 1
+                while total > goal:
+                    total -= nums[j]
+                    j += 1
+                ans += i - j + 1
             return ans
 
         return f(goal) - f(goal - 1)
