@@ -1,0 +1,89 @@
+"""
+You are given 2 integer arrays nums1 and nums2 of lengths n and m respectively. You are also given a positive integer k.
+
+A pair (i, j) is called good if nums1[i] is divisible by nums2[j] * k (0 <= i <= n - 1, 0 <= j <= m - 1).
+
+Return the total number of good pairs.
+
+
+
+Example 1:
+
+Input: nums1 = [1,3,4], nums2 = [1,3,4], k = 1
+
+Output: 5
+
+Explanation:
+
+The 5 good pairs are (0, 0), (1, 0), (1, 1), (2, 0), and (2, 2).
+Example 2:
+
+Input: nums1 = [1,2,4,12], nums2 = [2,4], k = 3
+
+Output: 2
+
+Explanation:
+
+The 2 good pairs are (3, 0) and (3, 1).
+
+
+
+Constraints:
+
+1 <= n, m <= 105
+1 <= nums1[i], nums2[j] <= 106
+1 <= k <= 103
+
+"""
+from collections import Counter
+from functools import lru_cache
+from typing import List
+
+
+def factors(n: int):
+    """
+    Distinct factors of n
+    """
+    stack = []
+    yield 1
+    if n != 1:
+        stack.append(n)
+    p = 2
+    while p * p <= n:
+        quotient, reminder = divmod(n, p)
+        if reminder == 0:
+            yield p
+            if quotient != p:
+                stack.append(quotient)
+        p += 1
+    while stack:
+        yield stack.pop()
+
+
+class Solution:
+    def numberOfPairs(self, nums1: List[int], nums2: List[int], k: int) -> int:
+        @lru_cache(None)
+        def solve(num: int) -> int:
+            ans = 0
+            for f in factors(num):
+                ans += divisors[f]
+            return ans
+
+        divisors = Counter(nums2)
+        ans = 0
+        for num in nums1:
+            if num % k == 0:
+                num //= k
+                ans += solve(num)
+        return ans
+
+
+def main():
+    nums1 = [1, 2, 4, 12]
+    nums2 = [2, 4]
+    k = 3
+    print(Solution().numberOfPairs(nums1, nums2, k))
+
+
+if __name__ == '__main__':
+    main()
